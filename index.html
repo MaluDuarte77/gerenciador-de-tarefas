@@ -14,7 +14,6 @@
       --bg-card: #1f2937;
       --bg-input: #111827;
       --border-color: #374151;
-      --border-light: #1f2937;
       
       --primary: #6366f1;
       --primary-hover: #4f46e5;
@@ -45,7 +44,6 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* BARRA SUPERIOR DE NOTIFICAÇÃO */
     .top-notification-bar {
       width: 100%;
       background: linear-gradient(90deg, #991b1b, #b45309);
@@ -76,7 +74,6 @@
       padding: 32px 20px; 
     }
 
-    /* HEADER */
     header {
       margin-bottom: 32px;
       display: flex;
@@ -111,7 +108,6 @@
       position: relative;
     }
 
-    /* BOTÃO DO SINO & BADGE */
     .notification-btn-wrapper { position: relative; }
 
     .bell-btn {
@@ -151,7 +147,6 @@
       border: 2px solid var(--bg-body);
     }
 
-    /* DROPDOWN NOTIFICAÇÕES */
     .notification-dropdown {
       position: absolute;
       top: 52px;
@@ -230,7 +225,6 @@
       color: #ffffff;
     }
 
-    /* METRICS / CARDS DASHBOARD */
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -268,7 +262,6 @@
       font-weight: 500;
     }
 
-    /* ALERTAS DE ESTAGNAÇÃO */
     .alerts-container { margin-bottom: 24px; }
     .alert-box {
       padding: 12px 18px;
@@ -282,7 +275,6 @@
     .alert-warning { background: var(--warning-light); border: 1px solid var(--warning); color: #fcd34d; }
     .alert-critical { background: var(--danger-light); border: 1px solid var(--danger); color: #fca5a5; }
 
-    /* CARD CONTAINER */
     .card {
       background: var(--bg-surface);
       padding: 24px;
@@ -309,6 +301,7 @@
     }
 
     .span-2 { grid-column: span 2; }
+    .span-full { grid-column: 1 / -1; }
 
     label {
       font-size: 0.78rem;
@@ -333,6 +326,12 @@
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
+    input[type="file"] {
+      padding: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
     input:focus, select:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
@@ -354,7 +353,6 @@
 
     .btn-primary:hover { background: var(--primary-hover); }
 
-    /* CARD DE NEGÓCIO / LINHA DE CLIENTE */
     .item-card {
       background: var(--bg-surface);
       padding: 20px;
@@ -367,7 +365,6 @@
 
     .item-card:hover { border-color: #4b5563; }
 
-    /* DESTAQUES PARA FOLLOW-UP */
     .item-card.follow-hoje {
       border-left: 5px solid var(--warning);
       background: linear-gradient(90deg, rgba(245, 158, 11, 0.05), var(--bg-surface) 35%);
@@ -396,6 +393,17 @@
       flex-wrap: wrap;
     }
 
+    .num-proposta {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      color: #94a3b8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+
     .cliente-nome {
       font-size: 1.05rem;
       font-weight: 700;
@@ -417,7 +425,45 @@
       margin-top: 2px;
     }
 
-    /* BADGES */
+    /* SEÇÃO DE ANEXOS NOS CARDS */
+    .anexos-container {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-color);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .anexos-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+
+    .anexo-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: #818cf8;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .anexo-chip:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: #ffffff;
+    }
+
     .badge {
       padding: 4px 10px;
       border-radius: 6px;
@@ -473,7 +519,6 @@
 </head>
 <body>
 
-  <!-- BARRA SUPERIOR DE NOTIFICAÇÃO -->
   <div id="topNotificationBar" class="top-notification-bar">
     <div class="info">
       <span>🔔 <strong>Aviso de Follow-up:</strong></span>
@@ -489,7 +534,6 @@
       </div>
 
       <div class="header-actions">
-        <!-- Ícone do Sino com Notificações -->
         <div class="notification-btn-wrapper">
           <button class="bell-btn" onclick="toggleDropdown(event)" title="Notificações">
             🔔
@@ -511,7 +555,6 @@
       </div>
     </header>
 
-    <!-- Indicadores no Topo -->
     <div class="metrics-grid">
       <div class="metric-card">
         <h4>Proposta Enviada</h4>
@@ -530,13 +573,16 @@
       </div>
     </div>
 
-    <!-- Alertas de Estagnação -->
     <div id="alertasContainer" class="alerts-container"></div>
 
     <!-- Form de Nova Proposta -->
     <div class="card">
       <div class="card-title">➕ Cadastrar Nova Oportunidade</div>
       <div class="grid-form">
+        <div class="form-group">
+          <label>Nº da Proposta</label>
+          <input type="text" id="numProposta" placeholder="Ex: PROP-2026-001" />
+        </div>
         <div class="form-group span-2">
           <label>Cliente / Razão Social *</label>
           <input type="text" id="cliente" placeholder="Ex: Grupo Safra S.A." />
@@ -551,18 +597,18 @@
         </div>
 
         <div class="form-group">
-          <label>Vendedor Responsible</label>
+          <label>Vendedor Responsável</label>
           <input type="text" id="vendedor" placeholder="Nome do Vendedor" />
         </div>
         <div class="form-group">
           <label>Suporte / BackOffice</label>
           <input type="text" id="backoffice" placeholder="Nome do BackOffice" />
         </div>
-
         <div class="form-group">
           <label>Valor Estimado (R$)</label>
           <input type="number" id="valorProposta" placeholder="0,00" step="0.01" />
         </div>
+
         <div class="form-group">
           <label>Data de Envio</label>
           <input type="date" id="dataInicio" />
@@ -570,6 +616,11 @@
         <div class="form-group">
           <label>Data Próximo Follow-up</label>
           <input type="date" id="dataFollowUp" />
+        </div>
+
+        <div class="form-group span-full">
+          <label>Anexos (PDFs, Imagens, Documentos - Ilimitados)</label>
+          <input type="file" id="anexosInput" multiple />
         </div>
       </div>
       <button class="btn-primary" onclick="salvarNegocio()">Salvar Oportunidade</button>
@@ -580,7 +631,7 @@
       <div class="card-title">🔍 Pesquisar Pipeline</div>
       <div class="grid-form">
         <div class="form-group span-2">
-          <label>Filtrar por Cliente, Vendedor ou Backoffice</label>
+          <label>Filtrar por Nº Proposta, Cliente, Vendedor ou Backoffice</label>
           <input type="text" id="filtroTexto" placeholder="Digite para filtrar..." oninput="renderizar()" />
         </div>
         <div class="form-group">
@@ -590,7 +641,6 @@
       </div>
     </div>
 
-    <!-- Lista de Negócios / Clientes -->
     <div id="listaNegocios"></div>
   </div>
 
@@ -656,35 +706,64 @@
       return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    function salvarNegocio() {
+    // Converter arquivos para Base64 para poder salvar no navegador
+    function lerArquivosComoBase64(files) {
+      const promises = Array.from(files).map(file => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({ nome: file.name, url: reader.result });
+          reader.onerror = error => reject(error);
+          reader.readAsDataURL(file);
+        });
+      });
+      return Promise.all(promises);
+    }
+
+    async function salvarNegocio() {
       const cliente = document.getElementById('cliente').value.trim();
+      const numProposta = document.getElementById('numProposta').value.trim() || `PROP-${Date.now().toString().slice(-4)}`;
       const valorProposta = parseFloat(document.getElementById('valorProposta').value) || 0;
       const etapa = document.getElementById('etapa').value;
       const vendedor = document.getElementById('vendedor').value.trim();
       const backoffice = document.getElementById('backoffice').value.trim();
       const dataInicio = document.getElementById('dataInicio').value;
       const dataFollowUp = document.getElementById('dataFollowUp').value;
+      const anexosInput = document.getElementById('anexosInput').files;
 
       if (!cliente) return alert('Por favor, informe o nome do cliente.');
 
+      let listaAnexos = [];
+      if (anexosInput.length > 0) {
+        try {
+          listaAnexos = await lerArquivosComoBase64(anexosInput);
+        } catch (e) {
+          console.error("Erro ao ler anexos:", e);
+        }
+      }
+
       const novo = {
         id: Date.now(),
+        numProposta,
         cliente,
         valorProposta,
         etapa,
         vendedor: vendedor || 'N/A',
         backoffice: backoffice || 'N/A',
         dataInicio,
-        dataFollowUp: dataFollowUp || 'Pendente'
+        dataFollowUp: dataFollowUp || 'Pendente',
+        anexos: listaAnexos
       };
 
       negocios.push(novo);
       localStorage.setItem('crm_comercial_dados', JSON.stringify(negocios));
 
+      // Limpar formulário
+      document.getElementById('numProposta').value = '';
       document.getElementById('cliente').value = '';
       document.getElementById('valorProposta').value = '';
       document.getElementById('vendedor').value = '';
       document.getElementById('backoffice').value = '';
+      document.getElementById('anexosInput').value = '';
 
       renderizar();
     }
@@ -742,7 +821,7 @@
         dropdownBody.innerHTML = pendentes.map(item => `
           <div class="notification-item ${item.tipo}">
             <div class="title">${item.tipo === 'atrasado' ? '🔴 Follow-up ATRASADO' : '🟡 Follow-up HOJE'}</div>
-            <div><strong>${item.cliente}</strong> (${formatarMoeda(item.valorProposta)})</div>
+            <div><strong>${item.cliente}</strong> (${item.numProposta})</div>
             <div class="subtitle">Resp: ${item.vendedor} | Data: ${item.dataFollowUp}</div>
           </div>
         `).join('');
@@ -773,13 +852,13 @@
           if (dias >= 20) {
             alertasContainer.innerHTML += `
               <div class="alert-box alert-critical">
-                <span>🚨 <strong>Alerta Crítico:</strong> Proposta do cliente <strong>${n.cliente}</strong> (${n.vendedor}) aberta há <strong>${dias} dias</strong>.</span>
+                <span>🚨 <strong>Alerta Crítico:</strong> Proposta <strong>${n.numProposta}</strong> (${n.cliente}) aberta há <strong>${dias} dias</strong>.</span>
               </div>
             `;
           } else if (dias >= 7) {
             alertasContainer.innerHTML += `
               <div class="alert-box alert-warning">
-                <span>⚠️ <strong>Atenção:</strong> Proposta do cliente <strong>${n.cliente}</strong> (${n.vendedor}) em andamento há <strong>${dias} dias</strong>.</span>
+                <span>⚠️ <strong>Atenção:</strong> Proposta <strong>${n.numProposta}</strong> (${n.cliente}) em andamento há <strong>${dias} dias</strong>.</span>
               </div>
             `;
           }
@@ -808,7 +887,8 @@
       container.innerHTML = '';
 
       const filtrados = negocios.filter(n => {
-        const matchTexto = n.cliente.toLowerCase().includes(fTexto) ||
+        const matchTexto = (n.numProposta && n.numProposta.toLowerCase().includes(fTexto)) ||
+                           n.cliente.toLowerCase().includes(fTexto) ||
                            n.vendedor.toLowerCase().includes(fTexto) ||
                            n.backoffice.toLowerCase().includes(fTexto);
 
@@ -840,11 +920,29 @@
         if (n.etapa === 'Andamento') badgeEtapaClass = 'badge-andamento';
         if (n.etapa === 'Fechado (Ganho)') badgeEtapaClass = 'badge-fechado';
 
+        // Renderizar HTML dos Anexos
+        let htmlAnexos = '';
+        if (n.anexos && n.anexos.length > 0) {
+          const chips = n.anexos.map(file => `
+            <a href="${file.url}" download="${file.nome}" class="anexo-chip" title="Baixar ${file.nome}">
+              📎 ${file.nome}
+            </a>
+          `).join('');
+
+          htmlAnexos = `
+            <div class="anexos-container">
+              <span class="anexos-label">Anexos (${n.anexos.length}):</span>
+              ${chips}
+            </div>
+          `;
+        }
+
         const div = document.createElement('div');
         div.className = `item-card ${classeCardExtra}`;
         div.innerHTML = `
           <div class="item-header">
             <div class="cliente-info">
+              <span class="num-proposta">${n.numProposta || 'S/N'}</span>
               <span class="cliente-nome">${n.cliente}</span>
               <span class="badge ${badgeEtapaClass}">${n.etapa}</span>
               ${badgeFollowUp}
@@ -861,6 +959,7 @@
             <div>Vendedor<strong>${n.vendedor}</strong></div>
             <div>BackOffice<strong>${n.backoffice}</strong></div>
           </div>
+          ${htmlAnexos}
         `;
         container.appendChild(div);
       });
