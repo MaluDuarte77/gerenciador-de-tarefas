@@ -2,40 +2,69 @@ const express = require('express');
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+// Aumenta o limite para aceitar imagens em Base64
+app.use(express.json({ limit: '10mb' }));
 
-// Array na memória para guardar os negócios/tarefas comerciais
-let negocios = [];
+let chamados = [];
+let contadorId = 1;
 
-// API: Listar todos os negócios
-app.get('/api/negocios', (req, res) => {
-  res.json(negocios);
+// Função para calcular 2 dias úteis a partir de uma data inicial
+function calcularDataFinalizacao(dataInicioStr) {
+  let data = new Date(dataInicioStr + 'T00:00:00');
+  let diasUteisAdicionados = 0;
+
+  while (diasUteisAdicionados < 2) {
+    data.setDate(data.getDate() + 1);
+    const diaDaSemana = data.getDay();
+    // 0 = Domingo, 6 = Sábado
+    if (diaDaSemana !== 0 && diaDaSemana !== 6) {
+      diasUteisAdicionados++;
+    }
+  }
+
+  return data.toISOString().split('T')[0];
+}
+
+// API: Listar chamados
+app.get('/api/chamados', (req, res) => {
+  res.json(chamados);
 });
 
-// API: Criar novo negócio comercial
-app.post('/api/negocios', (req, res) => {
-  const { cliente, valor, etapa } = req.body;
-  if (!cliente) return res.status(400).json({ error: 'Nome do cliente é obrigatório' });
+// API: Criar novo chamado
+app.post('/api/chamados', (req, res) => {
+  const { cliente, dataFollowUp, dataInicio, valorProposta, frete, printSolicitacao, anexoProposta } = req.body;
 
-  const novoNegocio = {
-    id: Date.now(),
+  if (!cliente || !dataInicio) {
+    return res.status(400).json({ error: 'Cliente e Data de Início são obrigatórios.' });
+  }
+
+  const dataFinalizacao = calcularDataFinalizacao(dataInicio);
+
+  const novoChamado = {
+    numero: `#${contadorId.toString().padStart(4, '0')}`,
     cliente,
-    valor: valor || 0,
-    etapa: etapa || 'Lead / Primeiro Contato'
+    dataFollowUp: dataFollowUp || 'Não informada',
+    dataInicio,
+    dataFinalizacao,
+    valorProposta: valorProposta || 0,
+    frete: frete || 'CIF',
+    printSolicitacao: printSolicitacao || null,
+    anexoProposta: anexoProposta || null
   };
 
-  negocios.push(novoNegocio);
-  res.status(201).json(novoNegocio);
+  contadorId++;
+  chamados.push(novoChamado);
+  res.status(201).json(novoChamado);
 });
 
-// API: Eliminar negócio
-app.delete('/api/negocios/:id', (req, res) => {
-  const { id } = req.params;
-  negocios = negocios.filter(n => n.id !== Number(id));
+// API: Deletar chamado
+app.delete('/api/chamados/:numero', (req, res) => {
+  const { numero } = req.params;
+  chamados = chamados.filter(c => c.numero !== `#${numero}`);
   res.json({ success: true });
 });
 
-// Interface Web Comercial
+// Interface Web
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -43,93 +72,159 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>CRM Comercial - Gerenciador de Vendas</title>
+      <title>Gerenciador Comercial de Vendas</title>
       <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; margin: 0; }
-        .card { background: #161b22; padding: 25px; border-radius: 8px; border: 1px solid #30363d; width: 100%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        h1 { font-size: 1.5rem; margin-bottom: 20px; color: #58a6ff; text-align: center; }
-        .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        input, select { padding: 10px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #fff; outline: none; }
-        button { padding: 12px; border: none; background: #238636; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        body { font-family: Arial, sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 800px; }
+        .card { background: #161b22; padding: 20px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 20px; }
+        h1, h2 { color: #58a6ff; text-align: center; margin-top: 0; }
+        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .full-width { grid-column: span 2; }
+        label { font-size: 0.85rem; color: #8b949e; display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; background: #238636; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
         button:hover { background: #2ea043; }
-        ul { list-style: none; padding: 0; margin: 0; }
-        li { background: #21262d; padding: 12px 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-left: 4px solid #58a6ff; }
-        .info { display: flex; flex-direction: column; gap: 4px; }
-        .cliente { font-weight: bold; color: #f0f6fc; }
-        .detalhes { font-size: 0.85rem; color: #8b949e; }
-        .badge { background: #388bfd1a; color: #58a6ff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; border: 1px solid #388bfd4d; display: inline-block; width: fit-content; }
-        .btn-delete { background: #da3633; padding: 6px 10px; font-size: 0.8rem; border-radius: 4px; }
+        .chamado-item { background: #21262d; padding: 15px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 15px; position: relative; }
+        .chamado-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; padding-bottom: 8px; margin-bottom: 10px; }
+        .numero { font-weight: bold; color: #58a6ff; font-size: 1.1rem; }
+        .badge { background: #388bfd1a; color: #58a6ff; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid #388bfd4d; }
+        .detalhes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem; }
+        .btn-delete { background: #da3633; width: auto; padding: 4px 10px; font-size: 0.8rem; }
         .btn-delete:hover { background: #f85149; }
+        .anexos-box { margin-top: 10px; display: flex; gap: 10px; }
+        .anexos-box img { max-width: 100px; max-height: 80px; border-radius: 4px; border: 1px solid #30363d; }
       </style>
     </head>
     <body>
-      <div class="card">
-        <h1>📊 CRM Comercial</h1>
-        
-        <div class="form-group">
-          <input type="text" id="cliente" placeholder="Nome do Cliente / Empresa" />
-          <input type="number" id="valor" placeholder="Valor Estimado (R$)" />
-          <select id="etapa">
-            <option value="Prospecção">Prospecção</option>
-            <option value="Proposta Enviada">Proposta Enviada</option>
-            <option value="Em Negociação">Em Negociação</option>
-            <option value="Fechado (Ganho)">Fechado (Ganho)</option>
-          </select>
-          <button onclick="addDeal()">Adicionar Oportunidade</button>
+      <div class="container">
+        <div class="card">
+          <h1>📋 Solicitação Comercial</h1>
+          <div class="grid-form">
+            <div class="full-width">
+              <label>Cliente / Empresa</label>
+              <input type="text" id="cliente" placeholder="Nome do cliente..." />
+            </div>
+            <div>
+              <label>Data de Início</label>
+              <input type="date" id="dataInicio" />
+            </div>
+            <div>
+              <label>Data de Follow-up (Acompanhamento)</label>
+              <input type="date" id="dataFollowUp" />
+            </div>
+            <div>
+              <label>Valor da Proposta (R$)</label>
+              <input type="number" id="valorProposta" placeholder="0,00" step="0.01" />
+            </div>
+            <div>
+              <label>Frete</label>
+              <select id="frete">
+                <option value="CIF">CIF (Emitente)</option>
+                <option value="EXW">EXW (Retirada)</option>
+              </select>
+            </div>
+            <div class="full-width">
+              <label>Print da Solicitação do Cliente (Imagem)</label>
+              <input type="file" id="printSolicitacao" accept="image/*" />
+            </div>
+            <div class="full-width">
+              <label>Anexo da Proposta (PDF/Arquivo)</label>
+              <input type="file" id="anexoProposta" />
+            </div>
+          </div>
+          <button onclick="salvarChamado()">Criar Solicitação</button>
         </div>
 
-        <ul id="dealList"></ul>
+        <h2>Solicitações em Andamento</h2>
+        <div id="listaChamados"></div>
       </div>
 
       <script>
-        async function loadDeals() {
-          const res = await fetch('/api/negocios');
-          const deals = await res.json();
-          const ul = document.getElementById('dealList');
-          ul.innerHTML = '';
-          deals.forEach(d => renderDeal(d));
+        // Define a data atual no input de inicio
+        document.getElementById('dataInicio').valueAsDate = new Date();
+
+        function converterParaBase64(file) {
+          return new Promise((resolve, reject) => {
+            if (!file) return resolve(null);
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+          });
         }
 
-        function renderDeal(deal) {
-          const ul = document.getElementById('dealList');
-          const li = document.createElement('li');
-          li.innerHTML = \`
-            <div class="info">
-              <span class="cliente">\${deal.cliente}</span>
-              <span class="detalhes">R$ \${Number(deal.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-              <span class="badge">\${deal.etapa}</span>
-            </div>
-            <button class="btn-delete" onclick="deleteDeal(\${deal.id})">Remover</button>
-          \`;
-          ul.appendChild(li);
-        }
-
-        async function addDeal() {
+        async function salvarChamado() {
           const cliente = document.getElementById('cliente').value.trim();
-          const valor = document.getElementById('valor').value;
-          const etapa = document.getElementById('etapa').value;
+          const dataInicio = document.getElementById('dataInicio').value;
+          const dataFollowUp = document.getElementById('dataFollowUp').value;
+          const valorProposta = document.getElementById('valorProposta').value;
+          const frete = document.getElementById('frete').value;
 
-          if (!cliente) return alert('Por favor, informe o nome do cliente.');
+          const printFile = document.getElementById('printSolicitacao').files[0];
+          const anexoFile = document.getElementById('anexoProposta').files[0];
 
-          const res = await fetch('/api/negocios', {
+          if (!cliente || !dataInicio) {
+            return alert('Preencha o Nome do Cliente e a Data de Início.');
+          }
+
+          const printSolicitacao = await converterParaBase64(printFile);
+          const anexoProposta = await converterParaBase64(anexoFile);
+
+          const res = await fetch('/api/chamados', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cliente, valor, etapa })
+            body: JSON.stringify({
+              cliente, dataInicio, dataFollowUp, valorProposta, frete, printSolicitacao, anexoProposta
+            })
           });
 
           if (res.ok) {
             document.getElementById('cliente').value = '';
-            document.getElementById('valor').value = '';
-            loadDeals();
+            document.getElementById('valorProposta').value = '';
+            document.getElementById('printSolicitacao').value = '';
+            document.getElementById('anexoProposta').value = '';
+            carregarChamados();
           }
         }
 
-        async function deleteTask(id) {
-          await fetch(\`/api/negocios/\${id}\`, { method: 'DELETE' });
-          loadDeals();
+        async function carregarChamados() {
+          const res = await fetch('/api/chamados');
+          const dados = await res.json();
+          const container = document.getElementById('listaChamados');
+          container.innerHTML = '';
+
+          dados.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'chamado-item';
+            div.innerHTML = \`
+              <div class="chamado-header">
+                <div>
+                  <span class="numero">\${c.numero}</span> - <strong>\${c.cliente}</strong>
+                </div>
+                <button class="btn-delete" onclick="deletarChamado('\${c.numero.replace('#','')}')">Excluir</button>
+              </div>
+              <div class="detalhes-grid">
+                <div><strong>Início:</strong> \${c.dataInicio}</div>
+                <div><strong>Finalização (2 dias úteis):</strong> <span style="color:#3fb950">\${c.dataFinalizacao}</span></div>
+                <div><strong>Follow-up:</strong> \${c.dataFollowUp}</div>
+                <div><strong>Frete:</strong> <span class="badge">\${c.frete}</span></div>
+                <div><strong>Valor:</strong> R$ \${Number(c.valorProposta).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+              </div>
+              <div class="anexos-box">
+                \${c.printSolicitacao ? \`<a href="\${c.printSolicitacao}" target="_blank"><img src="\${c.printSolicitacao}" title="Print da Solicitação" /></a>\` : ''}
+                \${c.anexoProposta ? \`<a href="\${c.anexoProposta}" target="_blank" style="color:#58a6ff; font-size:0.85rem;">📄 Ver Anexo da Proposta</a>\` : ''}
+              </div>
+            \`;
+            container.appendChild(div);
+          });
         }
 
-        loadDeals();
+        async function deletarChamado(num) {
+          await fetch(\`/api/chamados/\${num}\`, { method: 'DELETE' });
+          carregarChamados();
+        }
+
+        carregarChamados();
       </script>
     </body>
     </html>
@@ -137,5 +232,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`CRM Comercial rodando em http://localhost:${PORT}`);
+  console.log(`Gerenciador Comercial rodando em http://localhost:${PORT}`);
 });
