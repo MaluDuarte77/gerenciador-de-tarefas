@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipeline & Gestão Comercial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #090d16;
+      --bg-surface: #111827;
+      --bg-card: #1f2937;
+      --bg-input: #111827;
+      --border-color: #374151;
+      --border-light: #1f2937;
+      
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-light: rgba(99, 102, 241, 0.12);
+      
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.12);
+      
+      --warning: #f59e0b;
+      --warning-light: rgba(245, 158, 11, 0.12);
+      
+      --danger: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.12);
+      
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --text-subtle: #6b7280;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      padding-bottom: 60px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* BARRA SUPERIOR DE NOTIFICAÇÃO */
+    .top-notification-bar {
+      width: 100%;
+      background: linear-gradient(90deg, #991b1b, #b45309);
+      color: #ffffff;
+      padding: 10px 24px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      letter-spacing: 0.2px;
+    }
+
+    .top-notification-bar .info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .container { 
+      width: 100%; 
+      max-width: 1140px; 
+      margin: 0 auto;
+      padding: 32px 20px; 
+    }
+
+    /* HEADER */
+    header {
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .header-title-area h1 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-title-area p {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-top: 4px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+
+    /* BOTÃO DO SINO & BADGE */
+    .notification-btn-wrapper { position: relative; }
+
+    .bell-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+
+    .bell-btn:hover {
+      border-color: var(--primary);
+      background: var(--bg-card);
+    }
+
+    .bell-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg-body);
+    }
+
+    /* DROPDOWN NOTIFICAÇÕES */
+    .notification-dropdown {
+      position: absolute;
+      top: 52px;
+      right: 0;
+      width: 350px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+      z-index: 1000;
+      display: none;
+      overflow: hidden;
+      animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notification-dropdown.active { display: block; }
+
+    .dropdown-header {
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.02);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dropdown-body {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .notification-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.82rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .notification-item.hoje { border-left: 4px solid var(--warning); }
+    .notification-item.atrasado { border-left: 4px solid var(--danger); }
+
+    .notification-item .title { font-weight: 600; }
+    .notification-item .subtitle { color: var(--text-muted); font-size: 0.78rem; }
+
+    .empty-notifications {
+      padding: 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .btn-notify-perm {
+      background: var(--primary-light);
+      border: 1px solid var(--primary);
+      color: #818cf8;
+      padding: 9px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-notify-perm:hover {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    /* METRICS / CARDS DASHBOARD */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .metric-card h4 {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+    }
+
+    .metric-card .val {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .metric-card .subtext {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* ALERTAS DE ESTAGNAÇÃO */
+    .alerts-container { margin-bottom: 24px; }
+    .alert-box {
+      padding: 12px 18px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .alert-warning { background: var(--warning-light); border: 1px solid var(--warning); color: #fcd34d; }
+    .alert-critical { background: var(--danger-light); border: 1px solid var(--danger); color: #fca5a5; }
+
+    /* CARD CONTAINER */
+    .card {
+      background: var(--bg-surface);
+      padding: 24px;
+      border-radius: 14px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      color: var(--text-main);
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .span-2 { grid-column: span 2; }
+
+    label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-input);
+      color: var(--text-main);
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* CARD DE NEGÓCIO / LINHA DE CLIENTE */
+    .item-card {
+      background: var(--bg-surface);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 12px;
+      transition: border-color 0.2s, transform 0.1s;
+      position: relative;
+    }
+
+    .item-card:hover { border-color: #4b5563; }
+
+    /* DESTAQUES PARA FOLLOW-UP */
+    .item-card.follow-hoje {
+      border-left: 5px solid var(--warning);
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.05), var(--bg-surface) 35%);
+    }
+
+    .item-card.follow-atrasado {
+      border-left: 5px solid var(--danger);
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.05), var(--bg-surface) 35%);
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .cliente-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .cliente-nome {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .detalhes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      font-size: 0.83rem;
+      color: var(--text-muted);
+    }
+
+    .detalhes-grid div strong {
+      display: block;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      margin-top: 2px;
+    }
+
+    /* BADGES */
+    .badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: uppercase;
+    }
+
+    .badge-proposta { background: var(--primary-light); color: #a5b4fc; border: 1px solid var(--primary); }
+    .badge-andamento { background: var(--warning-light); color: #fcd34d; border: 1px solid var(--warning); }
+    .badge-fechado { background: var(--success-light); color: #6ee7b7; border: 1px solid var(--success); }
+
+    .badge-follow-hoje { background: var(--warning-light); color: #fcd34d; border: 1px solid var(--warning); }
+    .badge-follow-atrasado { background: var(--danger-light); color: #fca5a5; border: 1px solid var(--danger); }
+
+    .action-btns { display: flex; gap: 8px; align-items: center; }
+
+    .btn-action {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--success);
+      color: #6ee7b7;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-action:hover { background: var(--success); color: #000; }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--text-subtle);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      transition: all 0.2s;
+    }
+    .btn-delete:hover { border-color: var(--danger); color: #fca5a5; }
+
+    @media (max-width: 768px) {
+      .span-2 { grid-column: span 1; }
+      .item-header { flex-direction: column; align-items: flex-start; }
+      .action-btns { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR DE NOTIFICAÇÃO -->
+  <div id="topNotificationBar" class="top-notification-bar">
+    <div class="info">
+      <span>🔔 <strong>Aviso de Follow-up:</strong></span>
+      <span id="topNotificationText"></span>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="header-title-area">
+        <h1>📊 Commercial Pipeline & Follow-up</h1>
+        <p>Acompanhamento centralizado de propostas e ciclo de vendas</p>
+      </div>
+
+      <div class="header-actions">
+        <!-- Ícone do Sino com Notificações -->
+        <div class="notification-btn-wrapper">
+          <button class="bell-btn" onclick="toggleDropdown(event)" title="Notificações">
+            🔔
+            <span id="bellBadge" class="bell-badge">0</span>
+          </button>
+
+          <div id="notificationDropdown" class="notification-dropdown">
+            <div class="dropdown-header">
+              <span>Alertas de Follow-up</span>
+              <span id="dropdownCount" style="font-size: 0.75rem; opacity: 0.7;">0 pendência(s)</span>
+            </div>
+            <div id="dropdownBody" class="dropdown-body">
+              <div class="empty-notifications">Nenhum follow-up pendente!</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-notify-perm" onclick="solicitarPermissaoNotificacao()">Ativar Notificações</button>
+      </div>
+    </header>
+
+    <!-- Indicadores no Topo -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <h4>Proposta Enviada</h4>
+        <div class="val" id="cnt-proposta" style="color: #a5b4fc;">0</div>
+        <div class="subtext" id="val-proposta">R$ 0,00</div>
+      </div>
+      <div class="metric-card">
+        <h4>Em Negociação</h4>
+        <div class="val" id="cnt-andamento" style="color: #fcd34d;">0</div>
+        <div class="subtext" id="val-andamento">R$ 0,00</div>
+      </div>
+      <div class="metric-card">
+        <h4>Vendas Fechadas</h4>
+        <div class="val" id="cnt-fechado" style="color: #6ee7b7;">0</div>
+        <div class="subtext" id="val-fechado">R$ 0,00</div>
+      </div>
+    </div>
+
+    <!-- Alertas de Estagnação -->
+    <div id="alertasContainer" class="alerts-container"></div>
+
+    <!-- Form de Nova Proposta -->
+    <div class="card">
+      <div class="card-title">➕ Cadastrar Nova Oportunidade</div>
+      <div class="grid-form">
+        <div class="form-group span-2">
+          <label>Cliente / Razão Social *</label>
+          <input type="text" id="cliente" placeholder="Ex: Grupo Safra S.A." />
+        </div>
+        <div class="form-group">
+          <label>Etapa Comercial</label>
+          <select id="etapa">
+            <option value="Proposta Enviada">Proposta Enviada</option>
+            <option value="Andamento">Andamento</option>
+            <option value="Fechado (Ganho)">Fechado (Ganho)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Vendedor Responsible</label>
+          <input type="text" id="vendedor" placeholder="Nome do Vendedor" />
+        </div>
+        <div class="form-group">
+          <label>Suporte / BackOffice</label>
+          <input type="text" id="backoffice" placeholder="Nome do BackOffice" />
+        </div>
+
+        <div class="form-group">
+          <label>Valor Estimado (R$)</label>
+          <input type="number" id="valorProposta" placeholder="0,00" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Data de Envio</label>
+          <input type="date" id="dataInicio" />
+        </div>
+        <div class="form-group">
+          <label>Data Próximo Follow-up</label>
+          <input type="date" id="dataFollowUp" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="salvarNegocio()">Salvar Oportunidade</button>
+    </div>
+
+    <!-- Filtros de Busca -->
+    <div class="card">
+      <div class="card-title">🔍 Pesquisar Pipeline</div>
+      <div class="grid-form">
+        <div class="form-group span-2">
+          <label>Filtrar por Cliente, Vendedor ou Backoffice</label>
+          <input type="text" id="filtroTexto" placeholder="Digite para filtrar..." oninput="renderizar()" />
+        </div>
+        <div class="form-group">
+          <label>Filtrar por Data de Envio</label>
+          <input type="date" id="filtroData" onchange="renderizar()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Negócios / Clientes -->
+    <div id="listaNegocios"></div>
+  </div>
+
+  <script>
+    document.getElementById('dataInicio').valueAsDate = new Date();
+
+    let negocios = JSON.parse(localStorage.getItem('crm_comercial_dados')) || [];
+
+    function toggleDropdown(event) {
+      event.stopPropagation();
+      const dropdown = document.getElementById('notificationDropdown');
+      dropdown.classList.toggle('active');
+    }
+
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('notificationDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        dropdown.classList.remove('active');
+      }
+    });
+
+    function solicitarPermissaoNotificacao() {
+      if ("Notification" in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            alert("✅ Notificações no navegador ativadas!");
+            verificarFollowUps();
+          } else {
+            alert("⚠️ Permissão para notificações negada.");
+          }
+        });
+      } else {
+        alert("Navegador não suporta notificações de área de trabalho.");
+      }
+    }
+
+    function enviarNotificacaoNavegador(titulo, mensagem) {
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(titulo, {
+          body: mensagem,
+          icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602145.png'
+        });
+      }
+    }
+
+    function obterDataHojeFormatada() {
+      const hoje = new Date();
+      const ano = hoje.getFullYear();
+      const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+      const dia = String(hoje.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    function calcularDiasPassados(dataStr) {
+      if (!dataStr) return 0;
+      const dataProposta = new Date(dataStr + 'T00:00:00');
+      const hoje = new Date();
+      const diffTempo = hoje - dataProposta;
+      return Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+    }
+
+    function formatarMoeda(val) {
+      return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function salvarNegocio() {
+      const cliente = document.getElementById('cliente').value.trim();
+      const valorProposta = parseFloat(document.getElementById('valorProposta').value) || 0;
+      const etapa = document.getElementById('etapa').value;
+      const vendedor = document.getElementById('vendedor').value.trim();
+      const backoffice = document.getElementById('backoffice').value.trim();
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFollowUp = document.getElementById('dataFollowUp').value;
+
+      if (!cliente) return alert('Por favor, informe o nome do cliente.');
+
+      const novo = {
+        id: Date.now(),
+        cliente,
+        valorProposta,
+        etapa,
+        vendedor: vendedor || 'N/A',
+        backoffice: backoffice || 'N/A',
+        dataInicio,
+        dataFollowUp: dataFollowUp || 'Pendente'
+      };
+
+      negocios.push(novo);
+      localStorage.setItem('crm_comercial_dados', JSON.stringify(negocios));
+
+      document.getElementById('cliente').value = '';
+      document.getElementById('valorProposta').value = '';
+      document.getElementById('vendedor').value = '';
+      document.getElementById('backoffice').value = '';
+
+      renderizar();
+    }
+
+    function mudarEtapa(id, novaEtapa) {
+      const index = negocios.findIndex(n => n.id === id);
+      if (index !== -1) {
+        negocios[index].etapa = novaEtapa;
+        localStorage.setItem('crm_comercial_dados', JSON.stringify(negocios));
+        renderizar();
+      }
+    }
+
+    function verificarFollowUps() {
+      const hojeStr = obterDataHojeFormatada();
+      let pendentesHoje = [];
+      let pendentesAtrasados = [];
+      let pendentes = [];
+
+      negocios.forEach(n => {
+        if (n.etapa !== 'Fechado (Ganho)' && n.dataFollowUp && n.dataFollowUp !== 'Pendente') {
+          if (n.dataFollowUp === hojeStr) {
+            pendentesHoje.push(n.cliente);
+            pendentes.push({ ...n, tipo: 'hoje' });
+          } else if (n.dataFollowUp < hojeStr) {
+            pendentesAtrasados.push(n.cliente);
+            pendentes.push({ ...n, tipo: 'atrasado' });
+          }
+        }
+      });
+
+      const topBar = document.getElementById('topNotificationBar');
+      const topText = document.getElementById('topNotificationText');
+
+      let msgBarra = '';
+      if (pendentesHoje.length > 0) msgBarra += ` 🟡 Follow-up HOJE: ${pendentesHoje.join(', ')}.`;
+      if (pendentesAtrasados.length > 0) msgBarra += ` 🔴 Follow-up ATRASADO: ${pendentesAtrasados.join(', ')}.`;
+
+      if (msgBarra !== '') {
+        topBar.style.display = 'flex';
+        topText.innerText = msgBarra;
+      } else {
+        topBar.style.display = 'none';
+      }
+
+      const badge = document.getElementById('bellBadge');
+      const dropdownBody = document.getElementById('dropdownBody');
+      const dropdownCount = document.getElementById('dropdownCount');
+
+      if (pendentes.length > 0) {
+        badge.style.display = 'flex';
+        badge.innerText = pendentes.length;
+        dropdownCount.innerText = `${pendentes.length} pendência(s)`;
+
+        dropdownBody.innerHTML = pendentes.map(item => `
+          <div class="notification-item ${item.tipo}">
+            <div class="title">${item.tipo === 'atrasado' ? '🔴 Follow-up ATRASADO' : '🟡 Follow-up HOJE'}</div>
+            <div><strong>${item.cliente}</strong> (${formatarMoeda(item.valorProposta)})</div>
+            <div class="subtitle">Resp: ${item.vendedor} | Data: ${item.dataFollowUp}</div>
+          </div>
+        `).join('');
+
+        enviarNotificacaoNavegador("🔔 Alerta de Follow-up", msgBarra);
+      } else {
+        badge.style.display = 'none';
+        dropdownCount.innerText = '0 pendências';
+        dropdownBody.innerHTML = '<div class="empty-notifications">Nenhum follow-up pendente!</div>';
+      }
+    }
+
+    function atualizarDashboard() {
+      let cntP = 0, cntA = 0, cntF = 0;
+      let valP = 0, valA = 0, valF = 0;
+
+      const alertasContainer = document.getElementById('alertasContainer');
+      alertasContainer.innerHTML = '';
+
+      negocios.forEach(n => {
+        if (n.etapa === 'Proposta Enviada') { cntP++; valP += n.valorProposta; }
+        if (n.etapa === 'Andamento') { cntA++; valA += n.valorProposta; }
+        if (n.etapa === 'Fechado (Ganho)') { cntF++; valF += n.valorProposta; }
+
+        if (n.etapa !== 'Fechado (Ganho)' && n.dataInicio) {
+          const dias = calcularDiasPassados(n.dataInicio);
+
+          if (dias >= 20) {
+            alertasContainer.innerHTML += `
+              <div class="alert-box alert-critical">
+                <span>🚨 <strong>Alerta Crítico:</strong> Proposta do cliente <strong>${n.cliente}</strong> (${n.vendedor}) aberta há <strong>${dias} dias</strong>.</span>
+              </div>
+            `;
+          } else if (dias >= 7) {
+            alertasContainer.innerHTML += `
+              <div class="alert-box alert-warning">
+                <span>⚠️ <strong>Atenção:</strong> Proposta do cliente <strong>${n.cliente}</strong> (${n.vendedor}) em andamento há <strong>${dias} dias</strong>.</span>
+              </div>
+            `;
+          }
+        }
+      });
+
+      document.getElementById('cnt-proposta').innerText = cntP;
+      document.getElementById('val-proposta').innerText = formatarMoeda(valP);
+
+      document.getElementById('cnt-andamento').innerText = cntA;
+      document.getElementById('val-andamento').innerText = formatarMoeda(valA);
+
+      document.getElementById('cnt-fechado').innerText = cntF;
+      document.getElementById('val-fechado').innerText = formatarMoeda(valF);
+    }
+
+    function renderizar() {
+      atualizarDashboard();
+      verificarFollowUps();
+
+      const fTexto = document.getElementById('filtroTexto').value.toLowerCase();
+      const fData = document.getElementById('filtroData').value;
+      const hojeStr = obterDataHojeFormatada();
+
+      const container = document.getElementById('listaNegocios');
+      container.innerHTML = '';
+
+      const filtrados = negocios.filter(n => {
+        const matchTexto = n.cliente.toLowerCase().includes(fTexto) ||
+                           n.vendedor.toLowerCase().includes(fTexto) ||
+                           n.backoffice.toLowerCase().includes(fTexto);
+
+        const matchData = !fData || n.dataInicio === fData;
+
+        return matchTexto && matchData;
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 0.9rem;">Nenhuma oportunidade encontrada.</p>';
+        return;
+      }
+
+      filtrados.forEach(n => {
+        let badgeFollowUp = '';
+        let classeCardExtra = '';
+
+        if (n.etapa !== 'Fechado (Ganho)' && n.dataFollowUp && n.dataFollowUp !== 'Pendente') {
+          if (n.dataFollowUp === hojeStr) {
+            badgeFollowUp = `<span class="badge badge-follow-hoje">🟡 Follow-up HOJE</span>`;
+            classeCardExtra = 'follow-hoje';
+          } else if (n.dataFollowUp < hojeStr) {
+            badgeFollowUp = `<span class="badge badge-follow-atrasado">🔴 Follow-up ATRASADO</span>`;
+            classeCardExtra = 'follow-atrasado';
+          }
+        }
+
+        let badgeEtapaClass = 'badge-proposta';
+        if (n.etapa === 'Andamento') badgeEtapaClass = 'badge-andamento';
+        if (n.etapa === 'Fechado (Ganho)') badgeEtapaClass = 'badge-fechado';
+
+        const div = document.createElement('div');
+        div.className = `item-card ${classeCardExtra}`;
+        div.innerHTML = `
+          <div class="item-header">
+            <div class="cliente-info">
+              <span class="cliente-nome">${n.cliente}</span>
+              <span class="badge ${badgeEtapaClass}">${n.etapa}</span>
+              ${badgeFollowUp}
+            </div>
+            <div class="action-btns">
+              ${n.etapa !== 'Fechado (Ganho)' ? `<button class="btn-action" onclick="mudarEtapa(${n.id}, 'Fechado (Ganho)')">✓ Fechar Venda</button>` : ''}
+              <button class="btn-delete" onclick="deletar(${n.id})">Excluir</button>
+            </div>
+          </div>
+          <div class="detalhes-grid">
+            <div>Valor Estimado<strong>${formatarMoeda(n.valorProposta)}</strong></div>
+            <div>Data de Envio<strong>${n.dataInicio}</strong></div>
+            <div>Próximo Follow-up<strong>${n.dataFollowUp}</strong></div>
+            <div>Vendedor<strong>${n.vendedor}</strong></div>
+            <div>BackOffice<strong>${n.backoffice}</strong></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function deletar(id) {
+      if (confirm('Deseja remover esta proposta do pipeline?')) {
+        negocios = negocios.filter(n => n.id !== id);
+        localStorage.setItem('crm_comercial_dados', JSON.stringify(negocios));
+        renderizar();
+      }
+    }
+
+    renderizar();
+  </script>
+</body>
+</html>
