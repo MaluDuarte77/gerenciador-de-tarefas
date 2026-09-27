@@ -4,32 +4,38 @@ const PORT = 3000;
 
 app.use(express.json());
 
-// Array na memória para guardar as tarefas
-let tarefas = [];
+// Array na memória para guardar os negócios/tarefas comerciais
+let negocios = [];
 
-// Rota para obter todas as tarefas
-app.get('/api/tarefas', (req, res) => {
-  res.json(tarefas);
+// API: Listar todos os negócios
+app.get('/api/negocios', (req, res) => {
+  res.json(negocios);
 });
 
-// Rota para adicionar uma nova tarefa
-app.post('/api/tarefas', (req, res) => {
-  const { texto } = req.body;
-  if (!texto) return res.status(400).json({ error: 'Texto é obrigatório' });
+// API: Criar novo negócio comercial
+app.post('/api/negocios', (req, res) => {
+  const { cliente, valor, etapa } = req.body;
+  if (!cliente) return res.status(400).json({ error: 'Nome do cliente é obrigatório' });
 
-  const novaTarefa = { id: Date.now(), texto };
-  tarefas.push(novaTarefa);
-  res.status(201).json(novaTarefa);
+  const novoNegocio = {
+    id: Date.now(),
+    cliente,
+    valor: valor || 0,
+    etapa: etapa || 'Lead / Primeiro Contato'
+  };
+
+  negocios.push(novoNegocio);
+  res.status(201).json(novoNegocio);
 });
 
-// Rota para apagar uma tarefa pelo ID
-app.delete('/api/tarefas/:id', (req, res) => {
+// API: Eliminar negócio
+app.delete('/api/negocios/:id', (req, res) => {
   const { id } = req.params;
-  tarefas = tarefas.filter(t => t.id !== Number(id));
+  negocios = negocios.filter(n => n.id !== Number(id));
   res.json({ success: true });
 });
 
-// Serve a interface HTML
+// Interface Web Comercial
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -37,74 +43,93 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Gerenciador de Tarefas</title>
+      <title>CRM Comercial - Gerenciador de Vendas</title>
       <style>
-        body { font-family: Arial, sans-serif; background: #0d1117; color: #c9d1d9; display: flex; justify-content: center; padding-top: 50px; }
-        .card { background: #161b22; padding: 25px; border-radius: 8px; border: 1px solid #30363d; width: 350px; }
-        h1 { font-size: 1.4rem; margin-bottom: 20px; color: #58a6ff; text-align: center; }
-        .input-group { display: flex; gap: 8px; margin-bottom: 20px; }
-        input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #fff; outline: none; }
-        button { padding: 10px 15px; border: none; background: #238636; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; margin: 0; }
+        .card { background: #161b22; padding: 25px; border-radius: 8px; border: 1px solid #30363d; width: 100%; max-width: 500px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        h1 { font-size: 1.5rem; margin-bottom: 20px; color: #58a6ff; text-align: center; }
+        .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        input, select { padding: 10px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #fff; outline: none; }
+        button { padding: 12px; border: none; background: #238636; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; }
         button:hover { background: #2ea043; }
         ul { list-style: none; padding: 0; margin: 0; }
-        li { background: #21262d; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .btn-delete { background: #da3633; padding: 4px 8px; font-size: 0.8rem; }
+        li { background: #21262d; padding: 12px 15px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-left: 4px solid #58a6ff; }
+        .info { display: flex; flex-direction: column; gap: 4px; }
+        .cliente { font-weight: bold; color: #f0f6fc; }
+        .detalhes { font-size: 0.85rem; color: #8b949e; }
+        .badge { background: #388bfd1a; color: #58a6ff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; border: 1px solid #388bfd4d; display: inline-block; width: fit-content; }
+        .btn-delete { background: #da3633; padding: 6px 10px; font-size: 0.8rem; border-radius: 4px; }
         .btn-delete:hover { background: #f85149; }
       </style>
     </head>
     <body>
       <div class="card">
-        <h1>Minhas Tarefas</h1>
-        <div class="input-group">
-          <input type="text" id="taskInput" placeholder="Digite uma tarefa..." />
-          <button onclick="addTask()">Criar</button>
+        <h1>📊 CRM Comercial</h1>
+        
+        <div class="form-group">
+          <input type="text" id="cliente" placeholder="Nome do Cliente / Empresa" />
+          <input type="number" id="valor" placeholder="Valor Estimado (R$)" />
+          <select id="etapa">
+            <option value="Prospecção">Prospecção</option>
+            <option value="Proposta Enviada">Proposta Enviada</option>
+            <option value="Em Negociação">Em Negociação</option>
+            <option value="Fechado (Ganho)">Fechado (Ganho)</option>
+          </select>
+          <button onclick="addDeal()">Adicionar Oportunidade</button>
         </div>
-        <ul id="taskList"></ul>
+
+        <ul id="dealList"></ul>
       </div>
 
       <script>
-        // Carrega as tarefas salvas ao abrir a página
-        async function loadTasks() {
-          const res = await fetch('/api/tarefas');
-          const tasks = await res.json();
-          const ul = document.getElementById('taskList');
+        async function loadDeals() {
+          const res = await fetch('/api/negocios');
+          const deals = await res.json();
+          const ul = document.getElementById('dealList');
           ul.innerHTML = '';
-          tasks.forEach(t => renderTask(t));
+          deals.forEach(d => renderDeal(d));
         }
 
-        function renderTask(task) {
-          const ul = document.getElementById('taskList');
+        function renderDeal(deal) {
+          const ul = document.getElementById('dealList');
           const li = document.createElement('li');
           li.innerHTML = \`
-            <span>\${task.texto}</span>
-            <button class="btn-delete" onclick="deleteTask(\${task.id})">X</button>
+            <div class="info">
+              <span class="cliente">\${deal.cliente}</span>
+              <span class="detalhes">R$ \${Number(deal.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+              <span class="badge">\${deal.etapa}</span>
+            </div>
+            <button class="btn-delete" onclick="deleteDeal(\${deal.id})">Remover</button>
           \`;
           ul.appendChild(li);
         }
 
-        async function addTask() {
-          const input = document.getElementById('taskInput');
-          const texto = input.value.trim();
-          if (!texto) return;
+        async function addDeal() {
+          const cliente = document.getElementById('cliente').value.trim();
+          const valor = document.getElementById('valor').value;
+          const etapa = document.getElementById('etapa').value;
 
-          const res = await fetch('/api/tarefas', {
+          if (!cliente) return alert('Por favor, informe o nome do cliente.');
+
+          const res = await fetch('/api/negocios', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ texto })
+            body: JSON.stringify({ cliente, valor, etapa })
           });
 
           if (res.ok) {
-            input.value = '';
-            loadTasks();
+            document.getElementById('cliente').value = '';
+            document.getElementById('valor').value = '';
+            loadDeals();
           }
         }
 
         async function deleteTask(id) {
-          await fetch(\`/api/tarefas/\${id}\`, { method: 'DELETE' });
-          loadTasks();
+          await fetch(\`/api/negocios/\${id}\`, { method: 'DELETE' });
+          loadDeals();
         }
 
-        loadTasks();
+        loadDeals();
       </script>
     </body>
     </html>
@@ -112,5 +137,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`CRM Comercial rodando em http://localhost:${PORT}`);
 });
